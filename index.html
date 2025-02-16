@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, minimum-scale=1">
+    <title>Кликер на фото</title>
+    <style>
+        /* Базовые стили */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+            color: #333;
+            position: relative;
+            overflow: hidden; /* Это предотвращает появление прокрутки */
+            user-select: none; /* Запрет на выделение текста */
+            -webkit-user-select: none; /* Запрет на выделение текста в Safari */
+            -moz-user-select: none; /* Запрет на выделение текста в Firefox */
+            -ms-user-select: none; /* Запрет на выделение текста в Internet Explorer */
+        }
+
+        /* Стиль для поздравления */
+        .birthday-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 6s forwards;
+            z-index: 9999;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+        }
+
+        /* Стиль для фона с затемнением */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+        }
+
+        /* Стиль для салютов */
+        .firework {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ff0;
+            border-radius: 50%;
+            opacity: 1;
+            animation: fireworkAnimation 2s forwards;
+        }
+
+        @keyframes fireworkAnimation {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Настройки игры */
+        .game-container {
+            text-align: center;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 320px;
+            max-width: 100%;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        @keyframes fadeInScale {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        h1 {
+            color: #5A9BCF;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .score {
+            font-size: 18px;
+            margin-bottom: 30px;
+            font-weight: bold;
+            color: #2D2D2D;
+        }
+
+        .image-container {
+            position: relative;
+        }
+
+        .image-container img {
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Эффект при наведении на фото */
+        .image-container img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Анимация при клике */
+        .image-container img.clicked {
+            animation: click-animation 0.5s forwards;
+        }
+
+        @keyframes click-animation {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+            }
+            50% {
+                transform: scale(1.2);
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+            }
+        }
+
+        .currency, .currency-infinity {
+            position: absolute;
+            top: 20px;
+            background-color: #ff66b2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            transform: translateY(-20px);
+            opacity: 0;
+            animation: slideDownFadeIn 0.8s ease-out forwards;
+        }
+
+
+        @keyframes slideDownFadeIn {
+            0% {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        /* Валюта DIANA */
+        .currency {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #ff66b2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Валюта LOVEDIANA:(∞) */
+        .currency-infinity {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #ff9966;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+
+        .praise-message {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+    </style>
+</head>
+<body>
+
+    <!-- Фон и сообщение -->
+    <div class="overlay"></div>
+    <div class="birthday-message">HAPPY BIRTHDAY KARLIK</div>
+
+    <div class="praise-message" id="praise"></div> <!-- Контейнер для похвалы -->
+
+
+    <div class="game-container">
+        <h1>Aboludno,ahaha</h1>
+        <div class="score">
+            <p>Очки: <span id="score">0</span></p>
+        </div>
+        <div class="image-container">
+            <!-- Изображение будет меняться -->
+            <img id="clickable-image" src="d1.JPG" alt="Фото для клика" onclick="incrementScore()">
+        </div>
+    </div>
+
+    <!-- Добавлен счётчик валюты DIANA -->
+    <div class="currency">
+        DIANA: <span id="currency">0</span>
+    </div>
+
+    <!-- Добавлен счётчик валюты LOVEDIANA:(∞), которая не накапливается -->
+    <div class="currency-infinity">
+        LOVEYOU 💍: <span id="currency-infinity">∞</span>
+    </div>
+
+    <script>
+        // Покажем поздравление и салюты
+        window.onload = () => {
+            setTimeout(() => {
+                // Добавляем анимацию для поздравления
+                const fireworks = document.querySelector('.birthday-message');
+                fireworks.style.animation = 'fadeIn 6s forwards';
+
+                // Генерация салютов
+                for (let i = 0; i < 50; i++) {
+                    const firework = document.createElement('div');
+                    firework.classList.add('firework');
+                    
+                    // Генерация случайного направления для салюта
+                    const randomX = Math.floor(Math.random() * 100) - 50; // случайное движение по X
+                    const randomY = Math.floor(Math.random() * 100) - 50; // случайное движение по Y
+                    
+                    firework.style.left = `${50 + randomX}%`;
+                    firework.style.top = `${50 + randomY}%`;
+
+                    document.body.appendChild(firework);
+                    setTimeout(() => {
+                        firework.remove();
+                    }, 2000); // Убираем салюты через 2 секунды
+                }
+
+                // Убираем поздравление и фон через 6 секунд
+                setTimeout(() => {
+                    document.querySelector('.birthday-message').style.display = 'none';
+                    document.querySelector('.overlay').style.display = 'none';
+                }, 6000); // Скрыть через 6 секунд
+            }, 100);
+        };
+
+        // Диана сохраняется всегда
+        let lovediana = parseInt(localStorage.getItem('lovediana')) || 0;
+        let score = 0;  // Очки не сохраняются
+        let clickCount = parseInt(localStorage.getItem('clickCount')) || 0;
+
+        // Массив путей к изображениям
+        const images = ["d1.JPG", "d2.JPG", "d3.JPG", "d4.JPG", "d5.JPG"];
+
+        // Обновляем интерфейс с сохранёнными данными
+        document.getElementById('currency').textContent = lovediana;
+
+        // Устанавливаем начальное изображение
+        const image = document.getElementById('clickable-image');
+        image.src = images[clickCount % images.length];
+
+        function incrementScore() {
+    image.classList.add('clicked');
+    score++;
+    lovediana++;
+    clickCount++;
+
+    if (clickCount % 10 === 0) {
+        const newImageIndex = (Math.floor(clickCount / 10) - 1) % images.length;
+        image.src = images[newImageIndex];
+    }
+
+    document.getElementById('score').textContent = score;
+    document.getElementById('currency').textContent = lovediana;
+
+    localStorage.setItem('lovediana', lovediana);
+    localStorage.setItem('clickCount', clickCount);
+
+    showPraise(score);
+
+    setTimeout(() => {
+        image.classList.remove('clicked');
+    }, 500);
+}
+
+// Функция для показа похвалы
+function showPraise(score) {
+    const praiseMessages = ["Good!", "COOL!", "AMATHING!"];
+    const thresholds = [20, 40, 100];
+
+    let cycleIndex = score % 101; // Перезапуск цикла после 100 очков
+
+    for (let i = 0; i < thresholds.length; i++) {
+        if (cycleIndex === thresholds[i]) {
+            const praiseElement = document.getElementById("praise");
+            praiseElement.textContent = praiseMessages[i];
+            praiseElement.style.opacity = "1";
+
+            setTimeout(() => {
+                praiseElement.style.opacity = "0";
+            }, 2000);
+            break;
+        }
+    }
+}
+
+
+    </script>
+</body>
+</html>
